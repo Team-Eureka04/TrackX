@@ -29,7 +29,7 @@ def get_current_data():
     xid_proc = subprocess.Popen("xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2", shell=True, stdout=subprocess.PIPE).stdout
     xid = xid_proc.read().decode().split('\n')[0]
 
-    data_proc = subprocess.Popen(f"xprop -id {xid} _NET_WM_NAME WM_CLASS _NET_WM_USER_TIME", shell=True, stdout=subprocess.PIPE).stdout
+    data_proc = subprocess.Popen(f"xprop -id {xid} _NET_WM_NAME WM_CLASS _NET_WM_USER_TIME _NET_WM_PID", shell=True, stdout=subprocess.PIPE).stdout
     data_str = data_proc.read().decode().split('\n')
 
     data_time = datetime.datetime.now().strftime("%H:%M:%S")
@@ -44,16 +44,17 @@ def get_current_data():
                 key = "Name"
             elif "_NET_WM_USER_TIME" in kv[0].strip():
                 key = "time"
+            elif "_NET_WM_PID" in kv[0].strip():
+                key = "pid"
             value = kv[1].strip()
             data[key] = value.replace('"', '')
-
     data.update(get_location())
     return data 
 
 
 def append_row(filename, data):
     
-    row = [data['date'], data['process-name'], data['Name'], data['time'], data['ip'], data['city'], data['loc']]
+    row = [data['date'], data['process-name'], data['Name'], data['time'], data['ip'], data['city'], data['loc'], data['pid']]
     
     today = datetime.datetime.now().strftime("%m-%d-%Y")
     csv_dir_name = 'csv_data'
@@ -66,7 +67,7 @@ def append_row(filename, data):
     if not os.path.exists(filepath):
         with open(filepath, 'w') as f:
             csv_writer = csv.writer(f, delimiter=',')
-            csv_writer.writerow(['Date', 'process-name', 'Name', 'time', 'ip', 'city','loc'])
+            csv_writer.writerow(['Date', 'process-name', 'Name', 'time', 'ip', 'city','loc','pid'])
 
     with open(filepath, 'a') as f:
         csv_writer = csv.writer(f, delimiter=',')
@@ -79,6 +80,7 @@ def send_data(data):
     print(data)
     post_data = {
             "process" : data['process-name'],
+            'process_id' : data['pid'],
             'timestamp' : data['date'],
             'ip' : data['ip'],
             'name' : data['Name'],
