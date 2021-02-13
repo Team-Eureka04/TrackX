@@ -1,4 +1,4 @@
-from flask import Flask,request,jsonify,abort
+from flask import Flask,request,jsonify,abort,render_template
 from flask_cors import CORS,cross_origin
 import sqlite3
 
@@ -37,8 +37,9 @@ def admin_login():
         db.close()
         for admins in data:
             if response['username'] == admins[0] and response['password'] == admins[1]:
-                return jsonify({'success':True}),201
-        return jsonify({'success': False}),400
+                return render_template('login.html')
+        # return jsonify({'success': False}),400
+        return render_template('login.html')
 
 @app.route('/employees/data',methods=['GET'])
 def list_employees():
@@ -73,7 +74,7 @@ def add_employee():
             }
         else:
             data = {
-                'name': request.json['name']
+                'name': request.json['name'],
                 'id' : request.json['id']
             }
         if request.json['location']:
@@ -120,7 +121,6 @@ def admin_signup():
         for admin in data:
             if admin[0] == response['username'] and admin[1] == data['password']:
                 return jsonify({'success': False,'admin':'already exists'}),400
-
             
         
 
