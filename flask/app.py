@@ -89,7 +89,7 @@ def admin_signup():
 @app.route('/employees/data',methods=['GET'])
 def list_employees():
     with app.app_context():
-        db = sqlite3.connect()
+        db = sqlite3.connect(DATABASE_PATH)
         cur = db.cursor()
         cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0)')
         cur.execute('SELECT * FROM list_employees')
@@ -126,7 +126,7 @@ def add_employee():
             data['location'] = request.json['location']
         # if request.json['efficiency']:
         #     data['efficiency'] = request.json['efficiency']
-        db = sqlite3.connect('./db/database.db')
+        db = sqlite3.connect(DATABASE_PATH)
         cur = db.cursor()
         cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0)')
         cur.execute('SELECT * FROM list_employees')
@@ -164,7 +164,7 @@ def rm_employee():
                 'id' : -1,
                 'name' : ''
             }
-        db = sqlite3.connect('./db/database.db')
+        db = sqlite3.connect(DATABASE_PATH)
         cur = db.cursor()
         cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0)')
         cur.execute('SELECT * FROM list_employees')
@@ -201,5 +201,58 @@ def rm_employee():
 #         for admin in data:
 #             if admin[0] == response['username'] and admin[1] == data['password']:
 #                 return jsonify({'success': False,'admin':'already exists'}),400
+
+@app.route('/add/data',methods=['POST'])
+def add_employee_data():
+    with app.app_context():
+        if not request.json:
+            abort(400)
+        response = {
+            "process" : request.json['process'],
+            'timestamp' : request.json['timestamp'],
+            'ip' : request.json['ip'],
+            'name' : request.json['name'],
+            'city' : request.json['city'],
+            'country' : request.json['country'],
+            'key' : request.json['key'],
+            'timespent' : request.json['timespent'],
+            'lat' : request.json['lat'],
+            'long' : request.json['long'],
+            'id' : request.json['id']
+        }
+        db = sqlite3.connect(DATABASE_PATH)
+        cur = db.cursor()
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS database (
+                process TEXT NOT NULL,
+                timestamp TEXT,
+                ip TEXT NOT NULL, 
+                name char(100) NOT NULL,
+                city char(100), 
+                country char(10),
+                key TEXT NOT NULL,
+                timespent TEXT NOT NULL,
+                lat float NOT NULL,
+                long float NOT NULL,
+                id PRIMARY KEY,
+                FOREIGN KEY (id) REFERENCES list_employees (id)
+            )''')
+        cur.execute(f'''
+            INSERT INTO database VALUES (
+                "{response["process"]}",
+                "{response["timestamp"]}",
+                "{response["ip"]}",
+                "{response["name"]}",
+                "{response["city"]}",
+                "{response["country"]}",
+                "{response["key"]}",
+                "{response["timespent"]}",
+                "{response["lat"]}",
+                "{response["long"]}",
+                "{response["id"]}"
+            )''')
+        db.commit()
+        db.close()
+        return jsonify({'success': True}),201
 
 app.run()
