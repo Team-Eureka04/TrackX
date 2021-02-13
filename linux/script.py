@@ -32,7 +32,7 @@ def get_current_data():
     data_proc = subprocess.Popen(f"xprop -id {xid} _NET_WM_NAME WM_CLASS _NET_WM_USER_TIME", shell=True, stdout=subprocess.PIPE).stdout
     data_str = data_proc.read().decode().split('\n')
 
-    data_time = datetime.datetime.now()
+    data_time = datetime.datetime.now().strftime("%H:%M:%S")
     data = {'date': data_time}
     for d in data_str:
         if d:
@@ -76,12 +76,13 @@ def append_row(filename, data):
 
 def send_data(data):
     API_ENDPOINT = "http://localhost:5000/add/data"
+    print(data)
     post_data = {
             "process" : data['process-name'],
             'timestamp' : data['date'],
             'ip' : data['ip'],
             'name' : data['Name'],
-            'city' : data['Location'],
+            'city' : data['loc'],
             'country' : data['country'],
             'key' : "hey",
             'timespent' : data['time'],
@@ -94,6 +95,6 @@ def send_data(data):
 
 if __name__ == '__main__':
     data = get_current_data()
-    append_row('demo', data)
+    # append_row('demo', data)
     send_data(data)
     
