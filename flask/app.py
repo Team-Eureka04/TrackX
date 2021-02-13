@@ -240,6 +240,7 @@ def add_employee_data():
                 lat float NOT NULL,
                 long float NOT NULL,
                 process TEXT NOT NULL,
+                process_id INT NOT NULL,
                 FOREIGN KEY (id) REFERENCES list_employees (id)
             )''')
         cur.execute(f'''
@@ -253,7 +254,8 @@ def add_employee_data():
                 "{response["timespent"]}",
                 "{response["lat"]}",
                 "{response["long"]}",
-                "{response["process"]}"
+                "{response["process"]}",
+                "{response["process_id"]}"
             )''')
         db.commit()
         db.close()
@@ -267,11 +269,12 @@ def show_personal_track(username,id):
         print(id)
         cur.execute('SELECT * FROM database WHERE id ={}'.format(id))
         data = cur.fetchall()
-        results = {}
+        results = []
         c=0
         for row in data:
             response={}
             response["process"] = row[9]
+            response["process_id"] = row[10]
             response["timestamp"] = row[1]
             response["ip"] = row[2]
             response["name"] = row[3]
@@ -281,10 +284,9 @@ def show_personal_track(username,id):
             response["lat"] = row[7]
             response["long"] = row[8]
             response["id"] = row[0]
-            results[f"{c}"]=response
-            c += 1
+            results.append(response)
         print(results)
-        return jsonify(results),201
+        return render_template('dashboard.html', data=results)
 
 
 app.run()
