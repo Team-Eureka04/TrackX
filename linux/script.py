@@ -6,6 +6,8 @@ import time
 import re
 import json
 import urllib.request
+import requests
+import math
 
 
 def get_location():
@@ -30,7 +32,8 @@ def get_current_data():
     data_proc = subprocess.Popen(f"xprop -id {xid} _NET_WM_NAME WM_CLASS _NET_WM_USER_TIME", shell=True, stdout=subprocess.PIPE).stdout
     data_str = data_proc.read().decode().split('\n')
 
-    data = {'date': datetime.datetime.now()}
+    data_time = datetime.datetime.now()
+    data = {'date': data_time}
     for d in data_str:
         if d:
             kv = d.split('=') if '=' in d else d.split(':')
@@ -47,11 +50,50 @@ def get_current_data():
     data.update(get_location())
     return data 
 
-def send_data(data):
-    print(data)
 
+def append_row(filename, data):
+    
+    row = [data['date'], data['process-name'], data['Name'], data['time'], data['ip'], data['city'], data['loc']]
+    
+    today = datetime.datetime.now().strftime("%m-%d-%Y")
+    csv_dir_name = 'csv_data'
+    script_path = os.path.dirname(os.path.abspath(__file__))
+
+    if not os.path.exists( os.path.join( script_path, csv_dir_name) ):
+        os.mkdir( os.path.join( script_path, csv_dir_name) )
+    filepath = os.path.join( script_path, csv_dir_name, f'{filename}-{today}.csv' )
+
+    if not os.path.exists(filepath):
+        with open(filepath, 'w') as f:
+            csv_writer = csv.writer(f, delimiter=',')
+            csv_writer.writerow(['Date', 'process-name', 'Name', 'time', 'ip', 'city','loc'])
+
+    with open(filepath, 'a') as f:
+        csv_writer = csv.writer(f, delimiter=',')
+        csv_writer.writerow(row)
+
+
+
+def send_data(data):
+    API_ENDPOINT = "http://localhost:5000/add/data"
+    post_data = {
+            "process" : data['process-name'],
+            'timestamp' : data['date'],
+            'ip' : data['ip'],
+            'name' : data['Name'],
+            'city' : data['Location'],
+            'country' : data['country'],
+            'key' : "hey",
+            'timespent' : data['time'],
+            'lat' : "124532",
+            'long' : "1343532",
+            'id' : math.floor(time.time()) 
+        }
+    r = requests.post(url = API_ENDPOINT, json=json.dumps(post_data))
     
 
 if __name__ == '__main__':
     data = get_current_data()
+    append_row('demo', data)
     send_data(data)
+    

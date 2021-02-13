@@ -1,7 +1,8 @@
-from flask import Flask,request,jsonify,abort,render_template
+from flask import Flask,request,jsonify,abort,render_template, url_for, redirect
 from flask_cors import CORS,cross_origin
 import sqlite3
 import os
+import json
 
 FLASK_ROOT = os.path.dirname(os.path.realpath(__file__))
 DATABASE_PATH = os.path.join(FLASK_ROOT,'db', 'database.db')
@@ -45,7 +46,7 @@ def admin_login():
         print(f"username : {username} passoword: {password} from post request")
         for admins in data:
             if username == admins[0] and password == admins[1]:
-                return render_template('dashboard.html')
+                return redirect(url_for('list_employees'))
 
         # return jsonify({'success': False}),400
         return render_template('login.html',purpose='Sign In',posturl='/admin/signin')
@@ -80,7 +81,7 @@ def admin_signup():
             cur.execute('INSERT INTO admin VALUES ("{}","{}")'.format(username, password))
             db.commit()
             db.close()
-            return render_template('dashboard.html')
+            return redirect(url_for('list_employees'))
         else:
             return render_template('login.html',purpose='Sign Up',posturl='/admin/signup')
         return render_template('login.html',purpose='Sign Up',posturl='/admin/signup')
@@ -202,24 +203,27 @@ def rm_employee():
 #             if admin[0] == response['username'] and admin[1] == data['password']:
 #                 return jsonify({'success': False,'admin':'already exists'}),400
 
-@app.route('/add/data',methods=['POST'])
+@app.route('/add/data',methods=['POST','GET'])
 def add_employee_data():
     with app.app_context():
         if not request.json:
             abort(400)
-        response = {
-            "process" : request.json['process'],
-            'timestamp' : request.json['timestamp'],
-            'ip' : request.json['ip'],
-            'name' : request.json['name'],
-            'city' : request.json['city'],
-            'country' : request.json['country'],
-            'key' : request.json['key'],
-            'timespent' : request.json['timespent'],
-            'lat' : request.json['lat'],
-            'long' : request.json['long'],
-            'id' : request.json['id']
-        }
+
+        response = json.loads(request.get_json())
+        
+        # response = {
+        #     "process" : req['process'],
+        #     'timestamp' : req['timestamp'],
+        #     'ip' : req['ip'],
+        #     'name' : req['name'],
+        #     'city' : req['city'],
+        #     'country' : req['country'],
+        #     'key' : req['key'],
+        #     'timespent' : req['timespent'],
+        #     'lat' : req['lat'],
+        #     'long' : req['long'],
+        #     'id' :req['id']
+        # }
         db = sqlite3.connect(DATABASE_PATH)
         cur = db.cursor()
         cur.execute('''
