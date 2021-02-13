@@ -95,7 +95,7 @@ def list_employees():
         cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0,team TEXT NOT NULL)')
         cur.execute('SELECT * FROM list_employees ORDER BY efficiency desc')
         data = cur.fetchall()
-        response = {}
+        response = []
         db.close()
         if not data:
             return render_template('list.html',response=["no users"])
@@ -261,7 +261,7 @@ def add_employee_data():
         db.close()
         return jsonify({'success': True}),201
 
-@app.route('/profile/<username>/<int:id>',methods=['GET'])
+@app.route('/employees/<username>/<int:id>',methods=['GET'])
 def show_personal_track(username,id):
     with app.app_context():
         db = sqlite3.connect(DATABASE_PATH)
