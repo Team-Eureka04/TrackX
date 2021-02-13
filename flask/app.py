@@ -95,7 +95,7 @@ def list_employees():
         cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0,team TEXT NOT NULL)')
         cur.execute('SELECT * FROM list_employees ORDER BY efficiency desc')
         data = cur.fetchall()
-        response = []
+        response = {}
         db.close()
         if not data:
             return render_template('list.html',response=["no users"])

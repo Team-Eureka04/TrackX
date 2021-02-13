@@ -87,13 +87,13 @@ def send_data(data):
             'timespent' : data['time'],
             'lat' : "124532",
             'long' : "1343532",
-            'id' : math.floor(time.time()) 
+            'id' : 2
         }
     r = requests.post(url = API_ENDPOINT, json=json.dumps(post_data))
     
 
 if __name__ == '__main__':
     data = get_current_data()
-    # append_row('demo', data)
+    append_row('demo', data)
     send_data(data)
     
