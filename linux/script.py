@@ -1,1 +1,1 @@
-#initalize
+# script for tracking the screen tabs
