@@ -95,10 +95,10 @@ def list_employees():
         cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0)')
         cur.execute('SELECT * FROM list_employees')
         data = cur.fetchall()
-        response = []
+        response = {}
         db.close()
         if not data:
-            return render_template('index.html',response=["no users"])
+            return jsonify({'users':None}),201
         c = 0
         for employee in data:
             temp = {}
@@ -106,9 +106,11 @@ def list_employees():
             temp['name'] = employee[1]
             temp['location'] = employee[2]
             temp['efficiency'] = employee[3]
-            response.append(temp)
+            response[c] = temp
+            c += 1
+        return render_template('list.html',data=response)
 
-        return render_template('index.html',response=response)
+
 
 @app.route('/employee/add', methods=['GET','POST'])
 def add_employee():
