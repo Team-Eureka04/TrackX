@@ -39,7 +39,7 @@ def get_current_data():
                 key = "process-name"
             elif "WM_CLASS" in kv[0].strip():
                 key = "Name"
-            elif kv[0].strip() == "_NET_WM_USER_TIME":
+            elif "_NET_WM_USER_TIME" in kv[0].strip():
                 key = "time"
             value = kv[1].strip()
             data[key] = value.replace('"', '')

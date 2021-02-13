@@ -107,7 +107,7 @@ def list_employees():
             temp['efficiency'] = employee[3]
             response[c] = temp
             c += 1
-        return jsonify(response),201
+        return render_template('list.html',data=response)
 
 @app.route('/employee/add', methods=['GET','POST'])
 def add_employee():
