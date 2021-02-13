@@ -94,10 +94,10 @@ def list_employees():
         cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0)')
         cur.execute('SELECT * FROM list_employees')
         data = cur.fetchall()
-        response = {}
+        response = []
         db.close()
         if not data:
-            return jsonify({'users':None}),201
+            return render_template('index.html',response=["no users"])
         c = 0
         for employee in data:
             temp = {}
@@ -105,14 +105,14 @@ def list_employees():
             temp['name'] = employee[1]
             temp['location'] = employee[2]
             temp['efficiency'] = employee[3]
-            response[c] = temp
-            c += 1
-        return jsonify(response),201
+            response.append(temp)
+
+        return render_template('index.html',response=response)
 
 @app.route('/employee/add', methods=['GET','POST'])
 def add_employee():
     with app.app_context():
-        if not request.json and not request.json['name'] in request.json and not request.json['id'] in request.json:
+        if not request.json:
             data = {
                 'name': '',
                 'id' : -1
@@ -214,7 +214,6 @@ def add_employee_data():
             'name' : request.json['name'],
             'city' : request.json['city'],
             'country' : request.json['country'],
-            'key' : request.json['key'],
             'timespent' : request.json['timespent'],
             'lat' : request.json['lat'],
             'long' : request.json['long'],
@@ -224,35 +223,60 @@ def add_employee_data():
         cur = db.cursor()
         cur.execute('''
             CREATE TABLE IF NOT EXISTS database (
-                process TEXT NOT NULL,
+                id INT NOT NULL,
                 timestamp TEXT,
                 ip TEXT NOT NULL, 
                 name char(100) NOT NULL,
                 city char(100), 
                 country char(10),
-                key TEXT NOT NULL,
                 timespent TEXT NOT NULL,
                 lat float NOT NULL,
                 long float NOT NULL,
-                id PRIMARY KEY,
+                process TEXT NOT NULL,
                 FOREIGN KEY (id) REFERENCES list_employees (id)
             )''')
         cur.execute(f'''
             INSERT INTO database VALUES (
-                "{response["process"]}",
+                "{response["id"]}",
                 "{response["timestamp"]}",
                 "{response["ip"]}",
                 "{response["name"]}",
                 "{response["city"]}",
                 "{response["country"]}",
-                "{response["key"]}",
                 "{response["timespent"]}",
                 "{response["lat"]}",
                 "{response["long"]}",
-                "{response["id"]}"
+                "{response["process"]}"
             )''')
         db.commit()
         db.close()
         return jsonify({'success': True}),201
+
+@app.route('/profile/<username>/<int:id>',methods=['GET'])
+def show_personal_track(username,id):
+    with app.app_context():
+        db = sqlite3.connect(DATABASE_PATH)
+        cur = db.cursor()
+        print(id)
+        cur.execute('SELECT * FROM database WHERE id ={}'.format(id))
+        data = cur.fetchall()
+        results = {}
+        c=0
+        for row in data:
+            response={}
+            response["process"] = row[9]
+            response["timestamp"] = row[1]
+            response["ip"] = row[2]
+            response["name"] = row[3]
+            response["city"] = row[4]
+            response["country"] = row[5]
+            response["timespent"] = row[6]
+            response["lat"] = row[7]
+            response["long"] = row[8]
+            response["id"] = row[0]
+            results[f"{c}"]=response
+            c += 1
+        print(results)
+        return jsonify(results),201
 
 app.run()
