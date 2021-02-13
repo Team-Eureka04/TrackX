@@ -110,7 +110,6 @@ def add_employee():
                 'name': request.json['name'],
                 'id' : request.json['id']
             }
-        print(data)
         if request.json['location']:
             data['location'] = request.json['location']
         # if request.json['efficiency']:
@@ -132,16 +131,42 @@ def add_employee():
             #     cur.execute('INSERT INTO list_employees (id,name,location,efficiency) VALUES ("{}","{}","{}",{})'.format(data['id'],data['name'],data['location'],data['efficiency']))
             # else:
             #     cur.execute('INSERT INTO list_employees (id,name) VALUES ("{}","{}")'.format(data['id'],data['name']))
-            return jsonify({'success': True}),201
+            db.commit()
+            db.close()
+            return jsonify({'success': True,'user':data["name"],'id':data['id']}),201
+
         else:
             return jsonify({'success': False}),201
 
+
+@app.route('/employee/delete', methods=['DELETE'])
+def rm_employee():
+    with app.app_context():
+        if request.json and request.json['name'] and request.json['id']:
+            data = {
+                'id': request.json['id'],
+                'name': request.json['name']
+            }
+        else:
+            data = {
+                'id' : -1,
+                'name' : ''
+            }
+        db = sqlite3.connect('./db/database.db')
+        cur = db.cursor()
+        cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0)')
+        cur.execute('SELECT * FROM list_employees')
+        edata = cur.fetchall()
+        for employee in edata:
+            if employee[0] == data['id'] and employee[1] == data['name']:
+                #user is found
+                cur.execute('DELETE FROM list_employees WHERE id ={}'.format(data['id']))
+
+        if data['id'] == -1:
+            return jsonify({'success': False,'error':'user does not exist'}),201
         db.commit()
         db.close()
-        return jsonify({'success': True,'user':data[name],'id':data['id']}),201
-
-
-        
+        return jsonify({'success': True,'user':data["name"],'id':data['id']}),201
 
 
 app.run()
