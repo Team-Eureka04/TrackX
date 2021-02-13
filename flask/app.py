@@ -1,6 +1,11 @@
 from flask import Flask,request,jsonify,abort,render_template
 from flask_cors import CORS,cross_origin
 import sqlite3
+import os
+
+FLASK_ROOT = os.path.dirname(os.path.realpath(__file__))
+DATABASE_PATH = os.path.join(FLASK_ROOT,'db', 'database.db')
+
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -14,7 +19,7 @@ def home():
 @app.route('/admin/signin',methods=['GET','POST'])
 def admin_login():
     with app.app_context():
-        db = sqlite3.connect('./db/database.db')
+        db = sqlite3.connect(DATABASE_PATH)
         cur = db.cursor()
         if request.json and request.json['username'] and request.json['password']:
             response = {
@@ -35,10 +40,12 @@ def admin_login():
         cur.execute('SELECT * FROM admin')
         data = cur.fetchall()
         db.close()
+        username = request.form.get('username')
+        password = request.form.get('password')
+        print(f"username : {username} passoword: {password} from post request")
         for admins in data:
-            if response['username'] == admins[0] and response['password'] == admins[1]:
-                # return render_template('login.html')
-                return jsonify({'success': True}),201
+            if username == admins[0] and password == admins[1]:
+                return render_template('dashboard.html')
 
         # return jsonify({'success': False}),400
         return render_template('login.html',purpose='Sign In',posturl='/admin/signin')
@@ -47,8 +54,9 @@ def admin_login():
 @app.route('/admin/signup',methods=['GET','POST'])
 def admin_signup():
     with app.app_context():
-        db = sqlite3.connect('./db/database.db')
+        db = sqlite3.connect(DATABASE_PATH)
         cur = db.cursor()
+       
         if request.json and request.json['username'] and request.json['password']:
             response = {
                 'username' : request.json['username'],
@@ -62,22 +70,26 @@ def admin_signup():
         cur.execute('CREATE TABLE IF NOT EXISTS admin (username char(100) PRIMARY KEY, password char(100) NOT NULL)')
         cur.execute('SELECT * FROM admin')
         data = cur.fetchall()
+        username = request.form.get('username')
+        password = request.form.get('password')
+        print(f"username : {username} passoword: {password} from post request")
         for admin in data:
-            if admin[0] == response['username'] and admin[1] == data['password']:
+            if admin[0] == username:
                 return jsonify({'success': False,'admin':'already exists'}),400
-        if not response['username'] == '':
-            cur.execute('INSERT INTO admin VALUES ("{}","{}")'.format(response['username'], response['password']))
+        if username and password:
+            cur.execute('INSERT INTO admin VALUES ("{}","{}")'.format(username, password))
             db.commit()
             db.close()
-            return jsonify({'success': True}),201
+            return render_template('dashboard.html')
         else:
             return render_template('login.html',purpose='Sign Up',posturl='/admin/signup')
+        return render_template('login.html',purpose='Sign Up',posturl='/admin/signup')
 
 
 @app.route('/employees/data',methods=['GET'])
 def list_employees():
     with app.app_context():
-        db = sqlite3.connect('./db/database.db')
+        db = sqlite3.connect()
         cur = db.cursor()
         cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0)')
         cur.execute('SELECT * FROM list_employees')
@@ -140,8 +152,26 @@ def add_employee():
         db.close()
         return jsonify({'success': True,'user':data[name],'id':data['id']}),201
 
-
-        
-
+# @app.route('/admin/signup',methods=['GET','POST'])
+# def admin_signup():
+#     with app.app_context():
+#         db = sqlite3.connect('./db/database.db')
+#         cur = db.cursor()
+#         if request.json and request.json['username'] and request.json['password']:
+#             response = {
+#                 'username' : request.json['username'],
+#                 'password' : request.json['password']
+#             }
+#         else:
+#             response = {
+#                 'username' : '',
+#                 'password' : ''
+#             }
+#         cur.execute('CREATE TABLE IF NOT EXISTS admin (username char(100) PRIMARY KEY, password char(100) NOT NULL)')
+#         cur.execute('SELECT * FROM admin')
+#         data = cur.fetchall()
+#         for admin in data:
+#             if admin[0] == response['username'] and admin[1] == data['password']:
+#                 return jsonify({'success': False,'admin':'already exists'}),400
 
 app.run()
