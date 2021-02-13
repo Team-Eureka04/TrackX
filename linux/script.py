@@ -21,28 +21,37 @@ def get_location():
 
 
 def get_current_data():
+
+    time.sleep(5)
     
     xid_proc = subprocess.Popen("xprop -root 32x '\t$0' _NET_ACTIVE_WINDOW | cut -f 2", shell=True, stdout=subprocess.PIPE).stdout
     xid = xid_proc.read().decode().split('\n')[0]
 
-    data_proc = subprocess.Popen(f"xprop -id {xid} _NET_WM_NAME _NET_WM_PID WM_CLASS _NET_WM_USER_TIME", shell=True, stdout=subprocess.PIPE).stdout
+    data_proc = subprocess.Popen(f"xprop -id {xid} _NET_WM_NAME WM_CLASS _NET_WM_USER_TIME", shell=True, stdout=subprocess.PIPE).stdout
     data_str = data_proc.read().decode().split('\n')
 
-    data = {'xid': xid, 'date': datetime.datetime.now()}
+    data = {'date': datetime.datetime.now()}
     for d in data_str:
         if d:
             kv = d.split('=') if '=' in d else d.split(':')
-            key = kv[0].strip()
+            key = "key"
+            if "_NET_WM_NAME" in kv[0].strip():
+                key = "process-name"
+            elif "WM_CLASS" in kv[0].strip():
+                key = "Name"
+            elif kv[0].strip() == "_NET_WM_USER_TIME":
+                key = "time"
             value = kv[1].strip()
             data[key] = value.replace('"', '')
-
-
-    pid = int(data['_NET_WM_PID(CARDINAL)'])
-    cmd_proc = subprocess.Popen(f"ps -p {pid} -o comm=", shell=True, stdout=subprocess.PIPE).stdout
-    data['cmd'] = cmd_proc.read().decode().split('\n')[0]
+            
     data.update(get_location())
     return data 
 
+def send_data(data):
+    print(data)
+
+    
+
 if __name__ == '__main__':
     data = get_current_data()
-    print(data)
+    send_data(data)
