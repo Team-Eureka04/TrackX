@@ -92,13 +92,13 @@ def list_employees():
     with app.app_context():
         db = sqlite3.connect(DATABASE_PATH)
         cur = db.cursor()
-        cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0)')
-        cur.execute('SELECT * FROM list_employees')
+        cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0,team TEXT NOT NULL)')
+        cur.execute('SELECT * FROM list_employees ORDER BY efficiency desc')
         data = cur.fetchall()
         response = []
         db.close()
         if not data:
-            return render_template('index.html',response=["no users"])
+            return render_template('list.html',response=["no users"])
         c = 0
         for employee in data:
             temp = {}
@@ -106,9 +106,10 @@ def list_employees():
             temp['name'] = employee[1]
             temp['location'] = employee[2]
             temp['efficiency'] = employee[3]
+            temp['team'] = employee[4]
             response.append(temp)
-
-        return render_template('index.html',response=response)
+        print(response)
+        return render_template('list.html',response=response)
 
 @app.route('/employee/add', methods=['GET','POST'])
 def add_employee():
@@ -121,7 +122,8 @@ def add_employee():
         else:
             data = {
                 'name': request.json['name'],
-                'id' : request.json['id']
+                'id' : request.json['id'],
+                'team' : request.json['team']
             }
         if request.json['location']:
             data['location'] = request.json['location']
@@ -129,7 +131,7 @@ def add_employee():
         #     data['efficiency'] = request.json['efficiency']
         db = sqlite3.connect(DATABASE_PATH)
         cur = db.cursor()
-        cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0)')
+        cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0,team TEXT NOT NULL)')
         cur.execute('SELECT * FROM list_employees')
         edata = cur.fetchall()
         for employee in edata:
@@ -137,7 +139,7 @@ def add_employee():
                 return jsonify({'success': False,'user':'already exists'}),400
         if not data['id'] == -1:
             if data['location']:
-                cur.execute('INSERT INTO list_employees (id,name,location) VALUES ("{}","{}","{}")'.format(data['id'],data['name'],data['location']))
+                cur.execute('INSERT INTO list_employees (id,name,location,team) VALUES ("{}","{}","{}","{}")'.format(data['id'],data['name'],data['location'],data['team']))
             # elif data['efficiency'] and not data['location']:
             #     cur.execute('INSERT INTO list_employees (id,name,efficiency) VALUES ("{}","{}","{}")'.format(data['id'],data['name'],data['efficiency']))
             # elif data['location'] and data['efficiency']:

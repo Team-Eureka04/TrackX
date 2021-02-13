@@ -82,3 +82,10 @@ h1 {
 .rwd-table th, .rwd-table td:before {
   color: #dd5;
 }
+
+.color-circle{
+  width:10px;
+  height: 10px;
+  border-radius:5px;
+  padding:10px;
+}

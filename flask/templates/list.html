@@ -5,29 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static',filename='css/list-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
 
     <title>Document</title>
 </head>
 <body>
     <h1>Employee List</h1>
-<table class="rwd-table">
+<table class="rwd-table container">
   <tr>
     <th>Id</th>
     <th>Employee username</th>
+    <th>Department</th>
     <th>Location</th>
     <th>Efficiency</th>
   </tr>
   
-  {% for employee in data %}
+  {% for employee in response %}
     <tr>
-        <td data-th="Movie Title">{{data[employee].id}}</td>
-        <td data-th="Genre">{{data[employee].name}}</td>l
-        <td data-th="Year">{{data[employee].location}}</td>
-        <td data-th="Gross">{{data[employee].efficiency}}</td>
+        <td data-th="Movie Title">{{employee.id}}</td>
+        <td data-th="Genre">{{employee.name}}</td>
+        <td data-th="Year">{{employee.team}}</td>
+        <td data-th="Year">{{employee.location}}</td>
+        <td data-th="Gross"><span id="eff_{{employee.id}}">{{employee.efficiency}}</span><span style="padding:0px 20px;"></span><span class="color-circle" style="height: 10px;width: 10px; padding:1px 10px; border-radius:10px;" id="color_{{employee.id}}"></span></td>
     </tr>
  {%endfor%}
+ <script>
+   var i=1;
+   while(document.getElementById('eff_'+i)){
+     var eff = document.getElementById("eff_"+i).innerHTML;
+     console.log(eff);
+     if(eff<35){
+       document.getElementById('color_'+i).style.backgroundColor="#ff000c";
+     }
+     else if(eff>=35 && eff<70){
+      document.getElementById('color_'+i).style.backgroundColor="#ffdc00";
+     }
+     else{
+       document.getElementById('color_'+i).style.backgroundColor="#27ff00";
+     }
+     i++;
+   }
+ </script>
 
 </table>
-
+<script src="{{ url_for('static',filename='js/jquery-3.3.1.min.js') }}"></script>
+<script src="{{ url_for('static',filename='js/popper.min.js') }}"></script>
+<script src="{{ url_for('static',filename='js/bootstrap.min.js') }}"></script>
 </body>
 </html>
