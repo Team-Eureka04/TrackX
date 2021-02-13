@@ -43,7 +43,7 @@ def get_current_data():
                 key = "time"
             value = kv[1].strip()
             data[key] = value.replace('"', '')
-            
+
     data.update(get_location())
     return data 
 
