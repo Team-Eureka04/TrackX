@@ -41,7 +41,7 @@ def admin_login():
                 return jsonify({'success': True}),201
 
         # return jsonify({'success': False}),400
-        return render_template('login.html',purpose='Sign In')
+        return render_template('login.html',purpose='Sign In',posturl='/admin/signin')
 
 
 @app.route('/admin/signup',methods=['GET','POST'])
@@ -71,7 +71,7 @@ def admin_signup():
             db.close()
             return jsonify({'success': True}),201
         else:
-            return render_template('login.html',purpose='Sign Up')
+            return render_template('login.html',purpose='Sign Up',posturl='/admin/signup')
 
 
 @app.route('/employees/data',methods=['GET'])
