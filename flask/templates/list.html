@@ -22,11 +22,13 @@
   
   {% for employee in response %}
     <tr>
+      
         <td data-th="Movie Title">{{employee.id}}</td>
-        <td data-th="Genre">{{employee.name}}</td>
+        <td data-th="Genre"><a style="color: inherit" href="{{employee.name}}/{{employee.id}}">{{employee.name}}</a></td>
         <td data-th="Year">{{employee.team}}</td>
         <td data-th="Year">{{employee.location}}</td>
         <td data-th="Gross"><span id="eff_{{employee.id}}">{{employee.efficiency}}</span><span style="padding:0px 20px;"></span><span class="color-circle" style="height: 10px;width: 10px; padding:1px 10px; border-radius:10px;" id="color_{{employee.id}}"></span></td>
+       
     </tr>
  {%endfor%}
  <script>

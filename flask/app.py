@@ -294,7 +294,7 @@ def add_employee_data():
         db.close()
         return jsonify({'success': True}),201
 
-@app.route('/profile/<username>/<int:id>',methods=['GET'])
+@app.route('/employees/<username>/<int:id>',methods=['GET'])
 def show_personal_track(username,id):
     with app.app_context():
         db = sqlite3.connect(DATABASE_PATH)
