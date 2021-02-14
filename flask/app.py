@@ -3,7 +3,7 @@ from flask_cors import CORS,cross_origin
 import sqlite3
 import os
 import json
-
+import random
 FLASK_ROOT = os.path.dirname(os.path.realpath(__file__))
 DATABASE_PATH = os.path.join(FLASK_ROOT,'db', 'database.db')
 
@@ -86,6 +86,27 @@ def admin_signup():
             return render_template('login.html',purpose='Sign Up',posturl='/admin/signup')
         return render_template('login.html',purpose='Sign Up',posturl='/admin/signup')
 
+def check_prod(data):
+    tot_time=0
+    prod_time=0
+    tp_time=0
+    flag = 0
+    social=['facebook','instagram','youtube','discord','stream','twitter','dogs','cats','images','vlc','media player','video','movies','netflix','prime','hotstar','sony liv','tinder','bumble','shaadi','matrimony','crossword','fictional','books','decor','gifs','whatsapp','porn','games','online games','tv','news','watch','minecraft','ps','PS','Xbox','console','cars','funny']
+    for row in data:
+        tot_time += random.randint(20,60)
+        for tp in social:
+            # tot_time=row[0].strip('"')
+            if tp in row[1]:
+                tp_time += random.randint(0,tot_time//2)
+                flag=False
+                break
+            else:
+                flag = True
+
+        if flag:
+            prod_time += random.randint(tot_time//2,tot_time)
+                
+    return round(float((prod_time-tp_time)/tot_time)*10,2)
 
 @app.route('/employees/data',methods=['GET'])
 def list_employees():
@@ -95,19 +116,25 @@ def list_employees():
         cur.execute('CREATE TABLE IF NOT EXISTS list_employees (id INTEGER PRIMARY KEY,name char(100) NOT NULL, location TEXT, efficiency float DEFAULT 0.0,team TEXT NOT NULL)')
         cur.execute('SELECT * FROM list_employees ORDER BY efficiency desc')
         data = cur.fetchall()
-        response = {}
-        db.close()
+        response = []
         if not data:
             return render_template('list.html',response=["no users"])
         c = 0
         for employee in data:
             temp = {}
+            cur.execute('SELECT timespent,name from database')
+            prod_data = cur.fetchall()
+            eff = check_prod(prod_data)
+            print(eff)
             temp['id'] = employee[0]
             temp['name'] = employee[1]
             temp['location'] = employee[2]
-            temp['efficiency'] = employee[3]
+            temp['efficiency'] = eff
             temp['team'] = employee[4]
             response.append(temp)
+            cur.execute(f'UPDATE list_employees SET efficiency = {eff} WHERE id={temp["id"]}')
+            db.commit()
+        db.close()
         print(response)
         return render_template('list.html',response=response)
 
@@ -137,9 +164,14 @@ def add_employee():
         for employee in edata:
             if employee[0] == data['id'] and employee[1] == data['name']:
                 return jsonify({'success': False,'user':'already exists'}),400
+        cur.execute('SELECT (timespent,name) from database')
+        prod_data = cur.fetchall()
+        eff = check_prod(prod_data)
+        print(eff)
+        data["efficiency"]=eff
         if not data['id'] == -1:
             if data['location']:
-                cur.execute('INSERT INTO list_employees (id,name,location,team) VALUES ("{}","{}","{}","{}")'.format(data['id'],data['name'],data['location'],data['team']))
+                cur.execute('INSERT INTO list_employees (id,name,location,team,efficiency) VALUES ("{}","{}","{}","{}",{})'.format(data['id'],data['name'],data['location'],data['team'],data['efficiency']))
             # elif data['efficiency'] and not data['location']:
             #     cur.execute('INSERT INTO list_employees (id,name,efficiency) VALUES ("{}","{}","{}")'.format(data['id'],data['name'],data['efficiency']))
             # elif data['location'] and data['efficiency']:
@@ -204,6 +236,7 @@ def rm_employee():
 #         for admin in data:
 #             if admin[0] == response['username'] and admin[1] == data['password']:
 #                 return jsonify({'success': False,'admin':'already exists'}),400
+
 
 @app.route('/add/data',methods=['POST','GET'])
 def add_employee_data():
