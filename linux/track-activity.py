@@ -49,4 +49,4 @@ def send_data():
     print(r.text)
 
 if __name__ == '__main__':
-    send_data()
+    set_crontab_task()
